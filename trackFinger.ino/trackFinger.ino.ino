@@ -1,17 +1,20 @@
 #include<Servo.h>
 #include<StandardCplusplus.h>
 #include<list>
+#include<SoftwareSerial.h>
 
 using namespace std;
 
+SoftwareSerial mySerial(12,13);
+
 const double pi = 3.14159;
 
-int sensorA = 0;
-int sensorB = 1;
-int sensorC = 2;
-int motorPinA = 3;
-int motorPinB = 4;
-int motorPinC = 5;
+int sensorA = A0;
+int sensorB = A1;
+int sensorC = A2;
+int motorPinA = A3;
+int motorPinB = A4;
+int motorPinC = A5;
 
 Servo motorA;
 Servo motorB;
@@ -30,7 +33,7 @@ double thetaC = 0;
 
 double L = .19;
 
-double fs = 1000;  // sampling frequency, Hz
+double fs = 1;  // sampling frequency, Hz
 
 // Update the average velocity without recomputing
 // Given a list of prior samples and a new sample,
@@ -67,6 +70,8 @@ double computeVAve(list<double> samples)
   list<double>::iterator second = ++samples.begin();
   while (first != samples.end() && second != samples.end()) {
     sum += (*second - *first)/fs;
+    ++first;
+    ++second;
   }
   return sum / samples.size();
 }
@@ -74,11 +79,14 @@ double computeVAve(list<double> samples)
 // Convert an analog voltage read from a distance sensor to a distance
 double linearize(double sample)
 {
+  
   double k0 = 1.2637;
   double k1 = -0.005126;
   double k2 = 9.5074 * pow(10.0,-6.0);
   double k3 = -7.0759 * pow(10.0, -9.0);
   return k0 + k1*sample + k2*pow(sample, 2) + k3*pow(sample,3);
+  
+  //return 27.0 / sample;
 }
 
 // Calculate the position in cartesian coordinates and store it in x and y
@@ -96,12 +104,17 @@ void setup()
   motorA.attach(motorPinA);
   motorB.attach(motorPinB);
   motorC.attach(motorPinC);
+
+  mySerial.begin(9600);
+  Serial.begin(9600);
+  while(!mySerial);
 }
 
 double vAveX = 0;
 double vAveY = 0;
 void loop() 
 {
+  
   // Read from sensors
   double sampA = linearize(analogRead(sensorA));
   double sampB = linearize(analogRead(sensorB));
@@ -139,6 +152,30 @@ void loop()
   motorA.write(thetaA);
   motorB.write(thetaB);
   motorC.write(thetaC);
+  //motorA.write(0);
+  //motorB.write(0);
+  //motorC.write(0);
+
+  int pixelX = (int)(x * 32.0 / L);
+  int pixelY = (int)(y * 32.0 / L);
+  float velX = (float)(vAveX * 32.0 / L);
+  float velY = (float)(vAveY * 32.0 / L);
+
+  mySerial.println(pixelX);
+  mySerial.println(pixelY);
+  mySerial.println(velX);
+  mySerial.println(velY);
+
+  Serial.print("A: ");
+  Serial.println(sampA);
+
+  Serial.print("B: ");
+  Serial.println(sampB);
+
+  Serial.print("C: ");
+  Serial.println(sampC);
+
+  Serial.println();
 
   delay(1000 / fs);
   

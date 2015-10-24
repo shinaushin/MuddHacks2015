@@ -1,6 +1,7 @@
 
 #include <Adafruit_GFX.h>
 #include <RGBmatrixPanel.h>
+#include<SoftwareSerial.h>
 
 #define CLK 8  // MUST be on PORTB! (Use pin 11 on Mega)
 #define OE  9
@@ -12,11 +13,13 @@
 
 RGBmatrixPanel matrix(A, B, C, D, CLK, LAT, OE, false);
 
+SoftwareSerial mySerial(12,13);
+
 int maxP = 32;
 int maxV = 64;
 
 // Update the matrix given the position and velocity of the stylus
-void color(RGBmatrixPanel matrix, double x, double y, double xVel, double yVel)
+void color(RGBmatrixPanel mat, int x, int y, float xVel, float yVel)
 {
   long hue = sqrt(pow(xVel,2) + pow(yVel,2));
   uint8_t saturation = xVel * 255 / maxV;
@@ -25,17 +28,23 @@ void color(RGBmatrixPanel matrix, double x, double y, double xVel, double yVel)
   if (saturation > 255) saturation = 255;
   if (value > 255) value = 255;
 
-  matrix.drawPixel((int)x, (int)y, matrix.ColorHSV(hue, saturation, value, true));
+  mat.drawPixel(x, y, mat.ColorHSV(hue, saturation, value, true));
 }
 
 void setup() {
   // put your setup code here, to run once:
   matrix.begin();
+  mySerial.begin(9600);
+  while(!mySerial);
 }
-
-
 
 void loop() {
   // put your main code here, to run repeatedly:
-  
+  if (mySerial.available()) {
+    int x = mySerial.parseInt();
+    int y = mySerial.parseInt();
+    float xVel = mySerial.parseFloat();
+    float yVel = mySerial.parseFloat();
+    color(matrix, x, y, xVel, yVel);
+  }
 }
