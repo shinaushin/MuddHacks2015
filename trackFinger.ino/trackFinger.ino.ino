@@ -28,7 +28,7 @@ double thetaA = 0;
 double thetaB = 0;
 double thetaC = 0;
 
-double L = 32.0;
+double L = .19;
 
 double fs = 1000;  // sampling frequency, Hz
 
@@ -74,15 +74,22 @@ double computeVAve(list<double> samples)
 // Convert an analog voltage read from a distance sensor to a distance
 double linearize(double sample)
 {
-  return 27.0 / sample;
+  double k0 = 731.57;
+  double k1 = -1119.5;
+  double k2 = -811.56;
+  double k3 = 2160.5;
+  return k0 + k1*sample + k2*pow(sample, 2) + k3*pow(sample,3);
 }
 
 // Calculate the position in cartesian coordinates and store it in x and y
 void findPos(double a, double b, double c, double& x, double& y)
 {
-  x = (L / 2) + a * sin(thetaA);
-  y = (L / 2) + b * sin(thetaB);
+  x = b*cos(thetaB) - .2;
+  y = L - (a*cos(thetaA) - .2);
 }
+
+int maxP = 32;
+int maxV = 64;
 
 void setup() 
 {
