@@ -74,10 +74,10 @@ double computeVAve(list<double> samples)
 // Convert an analog voltage read from a distance sensor to a distance
 double linearize(double sample)
 {
-  double k0 = 731.57;
-  double k1 = -1119.5;
-  double k2 = -811.56;
-  double k3 = 2160.5;
+  double k0 = 1.2637;
+  double k1 = -0.005126;
+  double k2 = 9.5074 * pow(10.0,-6.0);
+  double k3 = -7.0759 * pow(10.0, -9.0);
   return k0 + k1*sample + k2*pow(sample, 2) + k3*pow(sample,3);
 }
 
@@ -87,9 +87,6 @@ void findPos(double a, double b, double c, double& x, double& y)
   x = b*cos(thetaB) - .2;
   y = L - (a*cos(thetaA) - .2);
 }
-
-int maxP = 32;
-int maxV = 64;
 
 void setup() 
 {
